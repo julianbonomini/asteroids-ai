@@ -1,0 +1,19 @@
+{
+  "name": "asteroids-ai",
+  "version": "0.1.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/julianbonomini/asteroids-ai.git"
+  },
+  "author": "Julian Bonomini",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/julianbonomini/asteroids-ai/issues"
+  },
+  "homepage": "https://github.com/julianbonomini/asteroids-ai#readme"
+}
