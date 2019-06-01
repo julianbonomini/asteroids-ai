@@ -1,15 +1,17 @@
-// const Player = require('./Player');
-const Neat = neataptic.Neat
-const Config = neataptic.Config
+const Neat = neataptic.Neat;
+const Config = neataptic.Config;
 Config.warnings = false;
 
-const neat = new Neat(6, 2, null, {
-    popsize: 100,
-    elitism: Math.round(0.2 * 100),
-    mutationRate: 0.5,
-    mutationAmount: 3
-  }
-);
+const options = {
+  popsize: POPULATION_GAMES,
+  elitism: ELITISM,
+  mutationRate: 0.5,
+  mutationAmount: 3,
+}
+const fitnessFunc = () => {
+  console.log('wtf?', this);
+}
+const neat = new Neat(5, 5, fitnessFunc, options);
 
 // const chartData = {
 //   labels: [],
@@ -40,13 +42,13 @@ let highestScore = 0;
 
 const population = new Player({
   neat,
-  games: 1,
-  onEndGeneration: ({generation, max, avg, min}) => {
-    console.log('data from generation:', generation, max, avg, min);
-    if (max > highestScore) {
-      highestScore = max;
+  games: POPULATION_GAMES,
+  onEndGeneration: ({ generation, score }) => {
+    if (score > highestScore) {
+      highestScore = score;
     }
-    console.log('highest score', highestScore);
+    document.getElementById('generation').innerHTML = generation
+    document.getElementById('highest-score').innerHTML = highestScore
   }
 });
 

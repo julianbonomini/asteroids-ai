@@ -128,7 +128,7 @@ class Asteroid {
     this.pos = new Vec2D(0, 0);
     this.vel = new Vec2D(0, 0);
     this.blacklisted = false;
-    this.type = 'b';
+    this.type = 1;
     this.sides = (Math.random() * 2 + 7) >> 0;
     this.angle = 0;
     this.angleVel = (1 - Math.random() * 2) * 0.01;
@@ -145,7 +145,7 @@ class Asteroid {
 }
 
 class Ship {
-  constructor(x, y, ref) {
+  constructor(x, y, brain, ref) {
     this.angle = 0;
     this.pos = new Vec2D(x, y);
     this.vel = new Vec2D(0, 0);
@@ -155,7 +155,12 @@ class Ship {
     this.idle = false;
     this.radius = 8;
     this.idleDelay = 0;
+    this.brain = brain;
   }
+
+  setBrain = brain => {
+    this.brain = brain;
+  };
 
   update = () => {
     this.vel.add(this.thrust);
@@ -211,8 +216,7 @@ class Game {
     this.pool = new Pool();
   }
 
-  startGame() {
-    //TODO aca tengo que crear un canvas por cada nuevo juego papaaaa
+  startGame(brain) {
     this.canvas = document.getElementById('canvas');
     this.context = canvas.getContext('2d');
 
@@ -226,82 +230,13 @@ class Game {
 
     this.hScan = (this.screenHeight / 4) >> 0;
 
-    this.keyboardInit();
+    // this.keyboardInit();
     this.particleInit();
     this.bulletInit();
     this.asteroidInit();
-    this.shipInit();
+    this.shipInit(brain);
 
     this.loop(this);
-  }
-
-  keyboardInit() {
-    window.onkeydown = e => {
-      switch (e.keyCode) {
-        //key A or LEFT
-        case 65:
-        case 37:
-          this.keyLeft = true;
-          break;
-
-        //key W or UP
-        case 87:
-        case 38:
-          this.keyUp = true;
-          break;
-
-        //key D or RIGHT
-        case 68:
-        case 39:
-          this.keyRight = true;
-          break;
-
-        //key S or DOWN
-        case 83:
-        case 40:
-          this.keyDown = true;
-          break;
-
-        //key Space
-        case 32:
-        case 75:
-          this.keySpace = true;
-          break;
-      }
-
-      e.preventDefault();
-    };
-
-    window.onkeyup = e => {
-      switch (e.keyCode) {
-        //key A or LEFT
-        case 65:
-        case 37:
-          this.keyLeft = false;
-          break;
-        //key W or UP
-        case 87:
-        case 38:
-          this.keyUp = false;
-          break;
-        //key D or RIGHT
-        case 68:
-        case 39:
-          this.keyRight = false;
-          break;
-        //key S or DOWN
-        case 83:
-        case 40:
-          this.keyDown = false;
-          break;
-        //key Space
-        case 75:
-        case 32:
-          this.keySpace = false;
-          break;
-      }
-      e.preventDefault();
-    };
   }
 
   particleInit() {
@@ -319,11 +254,13 @@ class Game {
     this.asteroids = [];
   }
 
-  shipInit() {
-    this.ship = new Ship(this.screenWidth >> 1, this.screenHeight >> 1, this);
+  shipInit(brain) {
+    brain.score = this.score;
+    this.ship = new Ship(this.screenWidth >> 1, this.screenHeight >> 1, brain, this);
   }
 
   loop() {
+    this.takeAction();
     this.updateShip();
     this.updateParticles();
     this.updateBullets();
@@ -335,17 +272,47 @@ class Game {
 
     if (window.requestAnimationFrame) {
       window.requestAnimationFrame(() => this.loop(this));
-    } else if (window.webkitRequestAnimationFrame) {
-      window.webkitRequestAnimationFrame(() => this.loop(this));
-    } else if (window.mozRequestAnimationFrame) {
-      window.mozRequestAnimationFrame(() => this.loop(this));
-    } else if (window.oRequestAnimationFrame) {
-      window.oRequestAnimationFrame(() => this.loop(this));
-    } else if (window.msRequestAnimationFrame) {
-      window.msRequestAnimationFrame(() => this.loop(this));
-    } else {
-      window.setTimeout(() => this.loop(this), 16.6);
     }
+  }
+
+  stopGame() {
+
+  }
+
+  takeAction() {
+    const asteroid = this.getClosestAsteroid(this.ship);
+    if(!asteroid) {
+      return; //Do nothing while the asteroids are not initialized
+    }
+    
+    // Activate the neural network (aka "where the magic happens")
+    const input = [asteroid.pos.getX(), asteroid.pos.getY(), asteroid.vel.getX(), asteroid.vel.getY(), asteroid.type];
+    const output = this.ship.brain.activate(input).map(o => Math.round(o));
+
+    this.keyLeft = output[0] //Go Left  (press A key)
+    this.keyUp = output[1] //Go Up    (press W key)
+    this.keyRight = output[2] //Go Right (press D key)
+    this.keyDown = output[3] //Go Down  (press S key)
+    this.keySpace = output[4] //Shoow    (press Space/K key)
+  }
+
+  getClosestAsteroid(ship) {
+    const shipPos = ship.pos.getXY();
+    if(this.asteroids.length == 0) {
+      return false
+    }
+    let closestAsteroid = this.asteroids[0];
+    let distance = 1000000;
+    this.asteroids.forEach(function(currentAsteroid) {
+      const xFromShip = shipPos._x - currentAsteroid.pos.getX();
+      const yFromShip = shipPos._y - currentAsteroid.pos.getY();
+      const currentAsteroidDistance = Math.sqrt(Math.pow(xFromShip, 2) + Math.pow(yFromShip, 2));
+      if(currentAsteroidDistance < distance) {
+        closestAsteroid = currentAsteroid;
+        distance = currentAsteroidDistance;
+      }
+    })
+    return closestAsteroid;
   }
 
   updateShip() {
@@ -466,7 +433,7 @@ class Game {
     if (this.asteroids.length < MINIMUN_ASTEROIDS_COUNT) {
       var factor = (Math.random() * 2) >> 0;
 
-      this.generateAsteroid(this.screenWidth * factor, this.screenHeight * factor, 60, 'b');
+      this.generateAsteroid(this.screenWidth * factor, this.screenHeight * factor, 60, 1);
     }
   }
 
@@ -507,15 +474,13 @@ class Game {
 
         if (this.checkDistanceCollision(b, a)) {
           b.blacklisted = true;
-          if(a.type == 'b') {
-            this.score += 10;
-          } else if (a.type == 'm') {
-            this.score += 15;
-          } else if(a.type == 's') {
-            this.score += 20;
+          if(a.type == 1) {
+            this.score += BIG_ASTEROID;
+          } else if (a.type == 2) {
+            this.score += MEDIUM_ASTEROID;
+          } else if(a.type == 3) {
+            this.score += SMALL_ASTEROID;
           }
-          console.log('new score', this.score)
-
           this.destroyAsteroid(a);
         }
       }
@@ -536,6 +501,20 @@ class Game {
 
         this.generateShipExplosion();
         this.destroyAsteroid(a);
+        console.log('YOU DIIIIEEEEEEEED');
+        if (window.requestAnimationFrame) {
+          window.requestAnimationFrame(null);
+        } else if (window.webkitRequestAnimationFrame) {
+          window.webkitRequestAnimationFrame(null);
+        } else if (window.mozRequestAnimationFrame) {
+          window.mozRequestAnimationFrame(null);
+        } else if (window.oRequestAnimationFrame) {
+          window.oRequestAnimationFrame(null);
+        } else if (window.msRequestAnimationFrame) {
+          window.msRequestAnimationFrame(null);
+        } else {
+          window.setTimeout(null, 16.6);
+        }
         this.gameOver(this.score);
       }
     }
@@ -608,13 +587,13 @@ class Game {
 
   resolveAsteroidType(asteroid) {
     switch (asteroid.type) {
-      case 'b':
-        this.generateAsteroid(asteroid.pos.getX(), asteroid.pos.getY(), 40, 'm');
-        this.generateAsteroid(asteroid.pos.getX(), asteroid.pos.getY(), 40, 'm');
+      case 1:
+        this.generateAsteroid(asteroid.pos.getX(), asteroid.pos.getY(), 40, 2);
+        this.generateAsteroid(asteroid.pos.getX(), asteroid.pos.getY(), 40, 2);
         break;
-      case 'm':
-        this.generateAsteroid(asteroid.pos.getX(), asteroid.pos.getY(), 20, 's');
-        this.generateAsteroid(asteroid.pos.getX(), asteroid.pos.getY(), 20, 's');
+      case 2:
+        this.generateAsteroid(asteroid.pos.getX(), asteroid.pos.getY(), 20, 3);
+        this.generateAsteroid(asteroid.pos.getX(), asteroid.pos.getY(), 20, 3);
         break;
     }
   }
@@ -732,9 +711,7 @@ class Game {
 
   generateShot() {
     var b = this.bulletPool.getElement();
-
     //if the bullet pool doesn't have more elements, will return 'null'.
-
     if (!b) return;
 
     b.radius = 1;
@@ -745,6 +722,7 @@ class Game {
     //bullets[bullets.length] = b; same as: bullets.push(b);
 
     this.bullets[this.bullets.length] = b;
+    this.score -= 1; //Prevent from shooting all the time
   }
 
   resetGame() {
