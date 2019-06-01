@@ -123,7 +123,7 @@ class Bullet {
 
 class Asteroid {
   constructor() {
-    this.radius = 500;
+    this.radius = Math.floor(Math.random() * 101) + 450;
     this.color = '#FF5900';
     this.pos = new Vec2D(0, 0);
     this.vel = new Vec2D(0, 0);
@@ -172,7 +172,6 @@ class Ship {
     }
   }
   shoot = () => {
-    console.log('ASDASDASD,', this.ref)
     if (this.bulletDelay > 8) {
       this.ref.generateShot();
       this.bulletDelay = 0;
@@ -199,7 +198,7 @@ class Game {
     this.hScan;
     this.asteroidVelFactor = 0;
     this.score = 0;
-    this.onGameOver = onGameOver;
+    this.gameOver = onGameOver;
     //keyboard vars
     this.keyLeft = false;
     this.keyUp = false;
@@ -464,7 +463,7 @@ class Game {
       else if (a.pos.getY() < -a.radius) a.pos.setY(this.screenHeight + a.radius);
     }
 
-    if (this.asteroids.length < 5) {
+    if (this.asteroids.length < MINIMUN_ASTEROIDS_COUNT) {
       var factor = (Math.random() * 2) >> 0;
 
       this.generateAsteroid(this.screenWidth * factor, this.screenHeight * factor, 60, 'b');
@@ -508,6 +507,14 @@ class Game {
 
         if (this.checkDistanceCollision(b, a)) {
           b.blacklisted = true;
+          if(a.type == 'b') {
+            this.score += 10;
+          } else if (a.type == 'm') {
+            this.score += 15;
+          } else if(a.type == 's') {
+            this.score += 20;
+          }
+          console.log('new score', this.score)
 
           this.destroyAsteroid(a);
         }
@@ -529,6 +536,7 @@ class Game {
 
         this.generateShipExplosion();
         this.destroyAsteroid(a);
+        this.gameOver(this.score);
       }
     }
   }
@@ -601,17 +609,12 @@ class Game {
   resolveAsteroidType(asteroid) {
     switch (asteroid.type) {
       case 'b':
-
         this.generateAsteroid(asteroid.pos.getX(), asteroid.pos.getY(), 40, 'm');
         this.generateAsteroid(asteroid.pos.getX(), asteroid.pos.getY(), 40, 'm');
-
         break;
-
       case 'm':
-
         this.generateAsteroid(asteroid.pos.getX(), asteroid.pos.getY(), 20, 's');
         this.generateAsteroid(asteroid.pos.getX(), asteroid.pos.getY(), 20, 's');
-
         break;
     }
   }

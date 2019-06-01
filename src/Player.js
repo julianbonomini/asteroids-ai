@@ -3,13 +3,12 @@ class Player {
     this.neat = neat
     this.simultaneousGames = []
     this.gamesFinished = 0
-    this.onEndGeneration = onEndGeneration
+    // this.onGameOver = onEndGeneration
 
     for (let i = 0; i < 1; i++) {
       // new asteroid game
-      this.simultaneousGames.push(new Game({
-        onGameOver: () => this.endGeneration()
-      }))
+      const newGame = new Game(this.onGameOver);
+      this.simultaneousGames.push(newGame);
     }
   }
 
@@ -24,12 +23,17 @@ class Player {
     }
   }
 
-  endGeneration () {
+  onGameOver = score => {
     if (this.gamesFinished + 1 < this.simultaneousGames.length) {
-      this.gamesFinished++
-      return
+      this.gamesFinished++;
+      return;
+    } else {
+      this.endGeneration(score);
     }
+  }
 
+  endGeneration = score => {
+    console.log('is this ok?', score)
     this.neat.sort()
 
     this.onEndGeneration({
