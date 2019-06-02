@@ -32,7 +32,7 @@ class Player {
   }
 
   endGeneration = () => {
-    console.log('end gen')
+    console.log('end gen', this.neat)
     this.neat.sort();
     this.onEndGeneration({
       generation: this.neat.generation,
@@ -51,7 +51,7 @@ class Player {
     this.neat.population = newGeneration;
     this.neat.mutate();
     this.neat.generation++;
-    // this.startGeneration();
+    this.startGeneration();
   }
 
 }

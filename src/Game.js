@@ -191,6 +191,8 @@ class Game {
     this.screenWidth;
     this.screenHeight;
     this.doublePI = Math.PI * 2;
+    //game vars
+    this.isGameFinished = false;
 
     //game vars
     this.ship;
@@ -216,21 +218,22 @@ class Game {
     this.pool = new Pool();
   }
 
-  startGame(brain) {
+  startGame(brain, canvasNumber) {
     console.log('start new game')
-    this.canvas = document.getElementById('canvas');
-    this.context = canvas.getContext('2d');
+    const canvasId = `canvas-${canvasNumber}`;
+    this.canvas = document.getElementById(canvasId);
+    this.context = this.canvas.getContext('2d');
 
     if (!this.canvas) return;
 
-    this.screenWidth = canvas.clientWidth;
-    this.screenHeight = canvas.clientHeight;
+    this.screenWidth = this.canvas.clientWidth;
+    this.screenHeight = this.canvas.clientHeight;
 
     this.canvas.width = this.screenWidth;
     this.canvas.height = this.screenHeight;
 
     this.hScan = (this.screenHeight / 4) >> 0;
-
+    this.isGameFinished = false;
     // this.keyboardInit();
     this.particleInit();
     this.bulletInit();
@@ -238,6 +241,20 @@ class Game {
     this.shipInit(brain);
 
     this.loop(this);
+  }
+
+  finishGame() {
+    this.isGameFinished = true;
+    this.ship = null;
+    this.particlePool = [];
+    this.particles = [];
+    this.bulletPool = [];
+    this.bullets = [];
+    this.asteroidPool = [];
+    this.asteroids = [];
+    this.hScan = null;
+    this.asteroidVelFactor = 0;
+    this.score = 0;
   }
 
   particleInit() {
@@ -261,18 +278,20 @@ class Game {
   }
 
   loop() {
-    this.takeAction();
-    this.updateShip();
-    this.updateParticles();
-    this.updateBullets();
-    this.updateAsteroids();
-
-    this.checkCollisions();
-
-    this.render();
-
-    if (window.requestAnimationFrame) {
-      window.requestAnimationFrame(() => this.loop(this));
+    if(this.ship) {
+      this.takeAction();
+      this.updateShip();
+      this.updateParticles();
+      this.updateBullets();
+      this.updateAsteroids();
+  
+      this.checkCollisions();
+  
+      this.render();
+  
+      if (window.requestAnimationFrame) {
+        this.animationId = window.requestAnimationFrame(() => this.loop(this));
+      }
     }
   }
 
@@ -281,7 +300,7 @@ class Game {
     if (!asteroid) {
       return; //Do nothing while the asteroids are not initialized
     }
-    
+
     // Activate the neural network (aka "where the magic happens")
     const input = [asteroid.pos.getX(), asteroid.pos.getY(), asteroid.vel.getX(), asteroid.vel.getY(), asteroid.type];
     const output = this.ship.brain.activate(input).map(o => Math.round(o));
@@ -496,9 +515,12 @@ class Game {
 
         s.idle = true;
 
+        // this.generateShipExplosion();
+        // this.destroyAsteroid(a);
+        this.ship.brain.score = this.score;
+        this.finishGame();
         this.gameOver(this.score);
-        this.generateShipExplosion();
-        this.destroyAsteroid(a);
+        break;
       }
     }
   }
