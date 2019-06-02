@@ -80,7 +80,7 @@ class Vec2D {
 
 class Particle {
   constructor() {
-    this.radius = 2;
+    this.radius = 1;
     this.color = '#FFF';
     this.lifeSpan = 0;
     this.fric = 0.98;
@@ -217,6 +217,7 @@ class Game {
   }
 
   startGame(brain) {
+    console.log('start new game')
     this.canvas = document.getElementById('canvas');
     this.context = canvas.getContext('2d');
 
@@ -275,13 +276,9 @@ class Game {
     }
   }
 
-  stopGame() {
-
-  }
-
   takeAction() {
     const asteroid = this.getClosestAsteroid(this.ship);
-    if(!asteroid) {
+    if (!asteroid) {
       return; //Do nothing while the asteroids are not initialized
     }
     
@@ -298,16 +295,16 @@ class Game {
 
   getClosestAsteroid(ship) {
     const shipPos = ship.pos.getXY();
-    if(this.asteroids.length == 0) {
+    if (this.asteroids.length == 0) {
       return false
     }
     let closestAsteroid = this.asteroids[0];
     let distance = 1000000;
-    this.asteroids.forEach(function(currentAsteroid) {
+    this.asteroids.forEach(function (currentAsteroid) {
       const xFromShip = shipPos._x - currentAsteroid.pos.getX();
       const yFromShip = shipPos._y - currentAsteroid.pos.getY();
       const currentAsteroidDistance = Math.sqrt(Math.pow(xFromShip, 2) + Math.pow(yFromShip, 2));
-      if(currentAsteroidDistance < distance) {
+      if (currentAsteroidDistance < distance) {
         closestAsteroid = currentAsteroid;
         distance = currentAsteroidDistance;
       }
@@ -433,7 +430,7 @@ class Game {
     if (this.asteroids.length < MINIMUN_ASTEROIDS_COUNT) {
       var factor = (Math.random() * 2) >> 0;
 
-      this.generateAsteroid(this.screenWidth * factor, this.screenHeight * factor, 60, 1);
+      this.generateAsteroid(this.screenWidth * factor, this.screenHeight * factor, 20, 1);
     }
   }
 
@@ -474,11 +471,11 @@ class Game {
 
         if (this.checkDistanceCollision(b, a)) {
           b.blacklisted = true;
-          if(a.type == 1) {
+          if (a.type == 1) {
             this.score += BIG_ASTEROID;
           } else if (a.type == 2) {
             this.score += MEDIUM_ASTEROID;
-          } else if(a.type == 3) {
+          } else if (a.type == 3) {
             this.score += SMALL_ASTEROID;
           }
           this.destroyAsteroid(a);
@@ -499,23 +496,9 @@ class Game {
 
         s.idle = true;
 
+        this.gameOver(this.score);
         this.generateShipExplosion();
         this.destroyAsteroid(a);
-        console.log('YOU DIIIIEEEEEEEED');
-        if (window.requestAnimationFrame) {
-          window.requestAnimationFrame(null);
-        } else if (window.webkitRequestAnimationFrame) {
-          window.webkitRequestAnimationFrame(null);
-        } else if (window.mozRequestAnimationFrame) {
-          window.mozRequestAnimationFrame(null);
-        } else if (window.oRequestAnimationFrame) {
-          window.oRequestAnimationFrame(null);
-        } else if (window.msRequestAnimationFrame) {
-          window.msRequestAnimationFrame(null);
-        } else {
-          window.setTimeout(null, 16.6);
-        }
-        this.gameOver(this.score);
       }
     }
   }
@@ -588,19 +571,19 @@ class Game {
   resolveAsteroidType(asteroid) {
     switch (asteroid.type) {
       case 1:
-        this.generateAsteroid(asteroid.pos.getX(), asteroid.pos.getY(), 40, 2);
-        this.generateAsteroid(asteroid.pos.getX(), asteroid.pos.getY(), 40, 2);
+        this.generateAsteroid(asteroid.pos.getX(), asteroid.pos.getY(), 10, 2);
+        this.generateAsteroid(asteroid.pos.getX(), asteroid.pos.getY(), 10, 2);
         break;
       case 2:
-        this.generateAsteroid(asteroid.pos.getX(), asteroid.pos.getY(), 20, 3);
-        this.generateAsteroid(asteroid.pos.getX(), asteroid.pos.getY(), 20, 3);
+        this.generateAsteroid(asteroid.pos.getX(), asteroid.pos.getY(), 5, 3);
+        this.generateAsteroid(asteroid.pos.getX(), asteroid.pos.getY(), 5, 3);
         break;
     }
   }
 
   render() {
     this.context.fillStyle = '#262626';
-    this.context.globalAlpha = 0.4;
+    this.context.globalAlpha = 0.9;
     this.context.fillRect(0, 0, this.screenWidth, this.screenHeight);
     this.context.globalAlpha = 1;
 
@@ -621,10 +604,10 @@ class Game {
     this.context.strokeStyle = '#FFF';
     this.context.lineWidth = (Math.random() > 0.9) ? 2 : 1;
     this.context.beginPath();
-    this.context.moveTo(10, 0);
-    this.context.lineTo(-10, -10);
-    this.context.lineTo(-10, 10);
-    this.context.lineTo(10, 0);
+    this.context.moveTo(5, 0);
+    this.context.lineTo(-5, -5);
+    this.context.lineTo(-5, 5);
+    this.context.lineTo(5, 0);
     this.context.stroke();
     this.context.closePath();
 
@@ -641,7 +624,7 @@ class Game {
 
       this.context.beginPath();
       this.context.strokeStyle = p.color;
-      this.context.arc(p.pos.getX() >> 0, p.pos.getY() >> 0, p.radius, 0, this.doublePI);
+      this.context.arc(p.pos.getX() >> 0, p.pos.getY() >> 0, 1, 0, this.doublePI);
       if (Math.random() > 0.4) this.context.stroke();
       this.context.closePath();
     }
@@ -681,10 +664,9 @@ class Game {
 
       for (j; j > -1; --j) {
         this.context.lineTo((a.pos.getX() + Math.cos(this.doublePI * (j / a.sides) + a.angle) * a.radius) >> 0, (a.pos.getY() + Math.sin(this.doublePI * (j / a.sides) + a.angle) * a.radius) >> 0);
-
       }
 
-      if (Math.random() > 0.2) this.context.stroke();
+      this.context.stroke();
 
       this.context.closePath();
     }

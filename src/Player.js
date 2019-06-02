@@ -13,10 +13,11 @@ class Player {
   }
 
   startGeneration = () => {
+    console.log('start new')
     this.gamesFinished = 0
 
     for (let i = 0; i < this.simultaneousGames.length; i++) {
-      this.simultaneousGames[i].startGame(this.neat.population[i]);
+      this.simultaneousGames[i].startGame(this.neat.population[i], i + 1);
     }
   }
 
@@ -25,12 +26,18 @@ class Player {
       this.gamesFinished++;
       return;
     } else {
+      this.gamesFinished = 0;
       this.endGeneration();
     }
   }
 
   endGeneration = () => {
+    console.log('end gen')
     this.neat.sort();
+    this.onEndGeneration({
+      generation: this.neat.generation,
+      score: this.neat.getFittest().score,
+    });
     const newGeneration = [];
 
     for (let i = 0; i < this.neat.elitism; i++) {
@@ -44,10 +51,6 @@ class Player {
     this.neat.population = newGeneration;
     this.neat.mutate();
     this.neat.generation++;
-    this.onEndGeneration({
-      generation: this.neat.generation,
-      score: this.neat.getFittest().score,
-    });
     // this.startGeneration();
   }
 

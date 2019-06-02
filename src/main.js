@@ -8,8 +8,8 @@ const options = {
   mutationRate: 0.5,
   mutationAmount: 3,
 }
-const fitnessFunc = () => {
-  console.log('wtf?', this);
+const fitnessFunc = (something) => {
+  console.log('fitness function is not doin', something);
 }
 const neat = new Neat(5, 5, fitnessFunc, options);
 
