@@ -219,7 +219,6 @@ class Game {
   }
 
   startGame(brain, canvasNumber) {
-    console.log('start new game')
     const canvasId = `canvas-${canvasNumber}`;
     this.canvas = document.getElementById(canvasId);
     this.context = this.canvas.getContext('2d');

@@ -2,19 +2,24 @@
 	margin: 0;
 }
 
+#container {
+	width: 100%;
+}
+
 canvas {
 	/* position: absolute; */
-	width: 300px;
+	width: 20%;
 	height: 300px;
 	background: #262626;
+	margin: 0;
 }
 
 #info {
 	color: #FFF;
 	font-family: "Lucida Sans Typewriter", "Lucida Console", Monaco, "Bitstream Vera Sans Mono", monospace;
-	margin-top: 20px;
 	margin-left: 90%;
 	padding: 8px;
+	top: 0;
 	background: #161616;
 	position: absolute;
 	z-index: 1;
@@ -26,4 +31,13 @@ canvas {
 
 #info p {
 	font-size: 11px;
+}
+
+#chart, #status {
+	right: 10px;
+	top: 150px;
+}
+
+#chart {
+  width: 100%;
 }

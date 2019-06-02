@@ -13,7 +13,6 @@ class Player {
   }
 
   startGeneration = () => {
-    console.log('start new')
     this.gamesFinished = 0
 
     for (let i = 0; i < this.simultaneousGames.length; i++) {
@@ -32,11 +31,12 @@ class Player {
   }
 
   endGeneration = () => {
-    console.log('end gen', this.neat)
     this.neat.sort();
     this.onEndGeneration({
       generation: this.neat.generation,
-      score: this.neat.getFittest().score,
+      max: this.neat.getFittest().score,
+      avg: Math.round(this.neat.getAverage()),
+      min: this.neat.population[this.neat.popsize - 1].score
     });
     const newGeneration = [];
 

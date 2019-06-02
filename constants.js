@@ -1,6 +1,6 @@
-const MINIMUN_ASTEROIDS_COUNT = 10;
-const POPULATION_GAMES = 10;
-const ELITISM = Math.round(0.2 * 10);
+const MINIMUN_ASTEROIDS_COUNT = 15;
+const POPULATION_GAMES = 50;
+const ELITISM = Math.round(0.2 * 50);
 
 const BIG_ASTEROID = 5;
 const MEDIUM_ASTEROID = 10;
