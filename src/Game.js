@@ -142,6 +142,10 @@ class Asteroid {
   reset = () => {
     this.blacklisted = false;
   };
+
+  setColor = color => {
+    this.color = color;
+  }
 }
 
 class Ship {
@@ -277,17 +281,17 @@ class Game {
   }
 
   loop() {
-    if(this.ship) {
+    if (this.ship) {
       this.takeAction();
       this.updateShip();
       this.updateParticles();
       this.updateBullets();
       this.updateAsteroids();
-  
+
       this.checkCollisions();
-  
+
       this.render();
-  
+
       if (window.requestAnimationFrame) {
         this.animationId = window.requestAnimationFrame(() => this.loop(this));
       }
@@ -295,39 +299,61 @@ class Game {
   }
 
   takeAction() {
-    const asteroid = this.getClosestAsteroid(this.ship);
-    if (!asteroid) {
+    const asteroids = this.getClosestAsteroids(this.ship);
+    if (this.asteroids.length < MINIMUN_ASTEROIDS_COUNT) {
       return; //Do nothing while the asteroids are not initialized
     }
-
     // Activate the neural network (aka "where the magic happens")
-    const input = [asteroid.pos.getX(), asteroid.pos.getY(), asteroid.vel.getX(), asteroid.vel.getY(), asteroid.type];
+    const input = [];
+    asteroids.forEach(asteroid => {
+      input.push(asteroid.pos.getX());
+      input.push(asteroid.pos.getY());
+      input.push(asteroid.vel.getY());
+      input.push(asteroid.vel.getY());
+      input.push(asteroid.type);
+    });
     const output = this.ship.brain.activate(input).map(o => Math.round(o));
 
-    this.keyLeft = output[0] //Go Left  (press A key)
-    this.keyUp = output[1] //Go Up    (press W key)
+    this.keyLeft = output[0]  //Go Left  (press A key)
+    this.keyUp = output[1]    //Go Up    (press W key)
     this.keyRight = output[2] //Go Right (press D key)
-    this.keyDown = output[3] //Go Down  (press S key)
+    this.keyDown = output[3]  //Go Down  (press S key)
     this.keySpace = output[4] //Shoow    (press Space/K key)
   }
 
-  getClosestAsteroid(ship) {
+  getClosestAsteroids(ship) {
     const shipPos = ship.pos.getXY();
-    if (this.asteroids.length == 0) {
-      return false
+    if (this.asteroids.length < MINIMUN_ASTEROIDS_COUNT) {
+      return []
     }
-    let closestAsteroid = this.asteroids[0];
+    let closestAsteroids = [];
     let distance = 1000000;
-    this.asteroids.forEach(function (currentAsteroid) {
-      const xFromShip = shipPos._x - currentAsteroid.pos.getX();
-      const yFromShip = shipPos._y - currentAsteroid.pos.getY();
-      const currentAsteroidDistance = Math.sqrt(Math.pow(xFromShip, 2) + Math.pow(yFromShip, 2));
-      if (currentAsteroidDistance < distance) {
-        closestAsteroid = currentAsteroid;
-        distance = currentAsteroidDistance;
+
+    const compareFunction = (a, b) => {
+      const xFromShipA = shipPos._x - a.pos.getX();
+      const yFromShipA = shipPos._y - a.pos.getY();
+      const currentAsteroidDistanceA = Math.sqrt(Math.pow(xFromShipA, 2) + Math.pow(yFromShipA, 2));
+      const xFromShipB = shipPos._x - b.pos.getX();
+      const yFromShipB = shipPos._y - b.pos.getY();
+      const currentAsteroidDistanceB = Math.sqrt(Math.pow(xFromShipB, 2) + Math.pow(yFromShipB, 2));
+      if (currentAsteroidDistanceA < currentAsteroidDistanceB) {
+        return -1;
       }
-    })
-    return closestAsteroid;
+      if (currentAsteroidDistanceA > currentAsteroidDistanceB) {
+        return 1;
+      }
+      return 0;
+    }
+    this.asteroids.sort(compareFunction);
+    const superCloseAmount = Math.floor(MINIMUN_ASTEROIDS_COUNT / 2);
+    for (let i = 0; i < superCloseAmount; i++) {
+      this.asteroids[i].setColor('#8a2be2');
+      closestAsteroids.push(this.asteroids[i]);
+    }
+    for (let i = superCloseAmount; i < this.asteroids.length; i++) {
+      this.asteroids[i].setColor('#FF5900');
+    }
+    return closestAsteroids;
   }
 
   updateShip() {

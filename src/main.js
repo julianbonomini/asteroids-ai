@@ -12,13 +12,13 @@ Config.warnings = false;
 const options = {
   popsize: POPULATION_GAMES,
   elitism: ELITISM,
-  mutationRate: 0.5,
-  mutationAmount: 3,
+  mutationRate: MUTATION_RATE,
+  mutationAmount: MUTATION_AMOUNT,
 }
 const fitnessFunc = (something) => {
   console.log('fitness function is not doin', something);
 }
-const neat = new Neat(5, 5, fitnessFunc, options);
+const neat = new Neat(((MINIMUN_ASTEROIDS_COUNT / 2) * 5), 5, fitnessFunc, options);
 
 const chartData = {
   labels: [],
@@ -55,7 +55,6 @@ const population = new Player({
     chartData.datasets[0].values.push(max);
     chartData.datasets[1].values.push(avg);
     chartData.datasets[2].values.push(min);
-    console.log('asdasdasda', max, avg, min)
     if (chartData.labels.length > 15) {
       chartData.labels.shift();
       chartData.datasets.forEach(d => d.values.shift());
