@@ -1,9 +1,10 @@
-const MINIMUN_ASTEROIDS_COUNT = 8;
-const POPULATION_GAMES = 10;
-// const ELITISM = Math.round(0.2 * 5);
-const ELITISM = 2;
+const FOR_HUMAN_EYE = true;
+
+const MINIMUN_ASTEROIDS_COUNT = 10;
+const POPULATION_GAMES = FOR_HUMAN_EYE ? 10 : 50;
+const ELITISM = Math.round(0.5 * POPULATION_GAMES);
 const MUTATION_RATE = 0.3;
-const MUTATION_AMOUNT = 5;
+const MUTATION_AMOUNT = 3;
 
 const BIG_ASTEROID = 5;
 const MEDIUM_ASTEROID = 10;

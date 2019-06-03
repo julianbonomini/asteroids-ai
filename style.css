@@ -17,9 +17,10 @@ canvas {
 #info {
 	color: #FFF;
 	font-family: "Lucida Sans Typewriter", "Lucida Console", Monaco, "Bitstream Vera Sans Mono", monospace;
-	margin-left: 90%;
+	/* margin-left: 90%; */
 	padding: 8px;
 	top: 0;
+	right: 0;
 	background: #161616;
 	position: absolute;
 	z-index: 1;

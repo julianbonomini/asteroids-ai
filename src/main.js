@@ -7,18 +7,34 @@ for (let i = 0; i < POPULATION_GAMES; i++) {
 
 const Neat = neataptic.Neat;
 const Config = neataptic.Config;
+const Methods = neataptic.Methods;
 Config.warnings = false;
 
 const options = {
+  mutation: [
+    Methods.Mutation.ADD_NODE,
+    Methods.Mutation.SUB_NODE,
+    Methods.Mutation.ADD_CONN,
+    Methods.Mutation.SUB_CONN,
+    Methods.Mutation.MOD_WEIGHT,
+    // Methods.Mutation.MOD_BIAS,
+    // Methods.Mutation.MOD_ACTIVATION,
+    // Methods.Mutation.ADD_GATE,
+    // Methods.Mutation.SUB_GATE,
+    // Methods.Mutation.ADD_SELF_CONN,
+    // Methods.Mutation.SUB_SELF_CONN,
+    // Methods.Mutation.ADD_BACK_CONN,
+    // Methods.Mutation.SUB_BACK_CONN
+  ],
   popsize: POPULATION_GAMES,
   elitism: ELITISM,
   mutationRate: MUTATION_RATE,
-  mutationAmount: MUTATION_AMOUNT,
+  // mutationAmount: MUTATION_AMOUNT,
 }
 const fitnessFunc = (something) => {
   console.log('fitness function is not doin', something);
 }
-const neat = new Neat(((MINIMUN_ASTEROIDS_COUNT / 2) * 5), 5, fitnessFunc, options);
+const neat = new Neat(((MINIMUN_ASTEROIDS_COUNT / 2) * 5), 4, fitnessFunc, options);
 
 const chartData = {
   labels: [],

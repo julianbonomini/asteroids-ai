@@ -164,7 +164,7 @@ class Ship {
 
   setBrain = brain => {
     this.brain = brain;
-  };
+  }
 
   update = () => {
     this.vel.add(this.thrust);
@@ -180,6 +180,7 @@ class Ship {
       }
     }
   }
+
   shoot = () => {
     if (this.bulletDelay > 8) {
       this.ref.generateShot();
@@ -226,6 +227,7 @@ class Game {
     const canvasId = `canvas-${canvasNumber}`;
     this.canvas = document.getElementById(canvasId);
     this.context = this.canvas.getContext('2d');
+    this.context.font = '48px serif';
 
     if (!this.canvas) return;
 
@@ -290,11 +292,21 @@ class Game {
 
       this.checkCollisions();
 
-      this.render();
-
-      if (window.requestAnimationFrame) {
-        this.animationId = window.requestAnimationFrame(() => this.loop(this));
+      if (FOR_HUMAN_EYE) {
+        this.render();
       }
+
+
+      if (FOR_HUMAN_EYE) {
+        if (window.requestAnimationFrame) {
+          this.animationId = window.requestAnimationFrame(() => this.loop(this));
+        }
+      } else {
+        setInterval(() => {
+          this.loop();
+        }, 100)
+      }
+
     }
   }
 
@@ -317,8 +329,10 @@ class Game {
     this.keyLeft = output[0]  //Go Left  (press A key)
     this.keyUp = output[1]    //Go Up    (press W key)
     this.keyRight = output[2] //Go Right (press D key)
-    this.keyDown = output[3]  //Go Down  (press S key)
-    this.keySpace = output[4] //Shoow    (press Space/K key)
+    this.keySpace = output[3] //Shoow    (press Space/K key)
+    if (this.keyUp) {
+      this.score += 0.1;
+    }
   }
 
   getClosestAsteroids(ship) {
@@ -369,7 +383,7 @@ class Game {
       this.ship.thrust.setLength(0.1);
       this.ship.thrust.setAngle(this.ship.angle);
 
-      this.generateThrustParticle();
+      // this.generateThrustParticle();
     }
     else {
       this.ship.vel.mul(0.94);
@@ -383,25 +397,25 @@ class Game {
     else if (this.ship.pos.getY() < 0) this.ship.pos.setY(this.screenHeight);
   }
 
-  generateThrustParticle() {
-    var p = this.particlePool.getElement();
+  // generateThrustParticle() {
+  //   var p = this.particlePool.getElement();
 
-    //if the particle pool doesn't have more elements, will return 'null'.
+  //   //if the particle pool doesn't have more elements, will return 'null'.
 
-    if (!p) return;
+  //   if (!p) return;
 
-    p.radius = Math.random() * 3 + 2;
-    p.color = '#FFF';
-    p.lifeSpan = 80;
-    p.pos.setXY(this.ship.pos.getX() + Math.cos(this.ship.angle) * -14, this.ship.pos.getY() + Math.sin(this.ship.angle) * -14);
-    p.vel.setLength(8 / p.radius);
-    p.vel.setAngle(this.ship.angle + (1 - Math.random() * 2) * (Math.PI / 18));
-    p.vel.mul(-1);
+  //   p.radius = Math.random() * 3 + 2;
+  //   p.color = '#FFF';
+  //   p.lifeSpan = 80;
+  //   p.pos.setXY(this.ship.pos.getX() + Math.cos(this.ship.angle) * -14, this.ship.pos.getY() + Math.sin(this.ship.angle) * -14);
+  //   p.vel.setLength(8 / p.radius);
+  //   p.vel.setAngle(this.ship.angle + (1 - Math.random() * 2) * (Math.PI / 18));
+  //   p.vel.mul(-1);
 
-    //particles[particles.length] = p; same as: particles.push(p);
+  //   //particles[particles.length] = p; same as: particles.push(p);
 
-    this.particles[this.particles.length] = p;
-  }
+  //   this.particles[this.particles.length] = p;
+  // }
 
   updateParticles() {
     var i = this.particles.length - 1;
