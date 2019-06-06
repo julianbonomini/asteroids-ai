@@ -196,6 +196,7 @@ class Game {
     this.screenWidth;
     this.screenHeight;
     this.doublePI = Math.PI * 2;
+    this.interval = 0;
     //game vars
     this.isGameFinished = false;
 
@@ -298,13 +299,18 @@ class Game {
 
 
       if (FOR_HUMAN_EYE) {
+        clearInterval(this.interval);
+        this.interval = 0;
         if (window.requestAnimationFrame) {
           this.animationId = window.requestAnimationFrame(() => this.loop(this));
         }
       } else {
-        setInterval(() => {
+        if(this.interval != 0) {
+          return;
+        }
+        this.interval = setInterval(() => {
           this.loop();
-        }, 100)
+        }, 0.2);
       }
 
     }
@@ -329,9 +335,9 @@ class Game {
     this.keyLeft = output[0]  //Go Left  (press A key)
     this.keyUp = output[1]    //Go Up    (press W key)
     this.keyRight = output[2] //Go Right (press D key)
-    this.keySpace = output[3] //Shoow    (press Space/K key)
+    this.keySpace = output[3] //Shoot    (press Space/K key)
     if (this.keyUp) {
-      this.score += 0.1;
+      this.score += MOVEMENT;      //Reward foward movement
     }
   }
 

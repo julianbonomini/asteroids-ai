@@ -18,7 +18,7 @@ class Neuroevolution {
     this.randomClamped = () => {
       return Math.random() * 2 - 1;
     };
-    this.generations = new Generations();
+    this.generations = new Generations(this);
   }
 
   /**
@@ -36,7 +36,7 @@ class Neuroevolution {
 	 * @return Neural Network array for next Generation.
 	 */
   nextGeneration = () => {
-    const networks = [];
+    let networks = [];
 
     if (this.generations.generations.length == 0) {
       // If no Generations, create first.
@@ -54,7 +54,7 @@ class Neuroevolution {
       nns.push(nn);
     }
 
-    if (this.options.lowHistoric) {
+    if (this.lowHistoric) {
       // Remove old Networks.
       if (this.generations.generations.length >= 2) {
         const genomes =
@@ -67,11 +67,11 @@ class Neuroevolution {
       }
     }
 
-    if (this.options.historic != -1) {
+    if (this.historic != -1) {
       // Remove older generations.
-      if (this.generations.generations.length > this.options.historic + 1) {
+      if (this.generations.generations.length > this.historic + 1) {
         this.generations.generations.splice(0,
-          this.generations.generations.length - (this.options.historic + 1));
+          this.generations.generations.length - (this.historic + 1));
       }
     }
 
@@ -104,8 +104,9 @@ class Neuron {
 	 */
   populate = inputs => {
     this.weights = [];
-    for (var i = 0; i < inputs; i++) {
-      this.weights.push(this.options.randomClamped());
+    for (let i = 0; i < inputs; i++) {
+      const random = Math.random() * 2 - 1;
+      this.weights.push(random);
     }
   }
 }
@@ -152,25 +153,25 @@ class Network {
   perceptronGeneration = (input, hiddens, output) => {
     let index = 0;
     let previousNeurons = 0;
-    let layer = new Layer(index);
-    layer.populate(input, previousNeurons); // Number of Inputs will be set to
+    const inputLayer = new Layer(index);
+    inputLayer.populate(input, previousNeurons); // Number of Inputs will be set to
     // 0 since it is an input layer.
     previousNeurons = input; // number of input is size of previous layer.
-    this.layers.push(layer);
+    this.layers.push(inputLayer);
     index++;
     for (let i in hiddens) {
       // Repeat same process as first layer for each hidden layer.
-      layer = new Layer(index);
-      layer.populate(hiddens[i], previousNeurons);
+      const hiddenLayer = new Layer(index);
+      hiddenLayer.populate(hiddens[i], previousNeurons);
       previousNeurons = hiddens[i];
-      this.layers.push(layer);
+      this.layers.push(hiddenLayer);
       index++;
     }
-    layer = new Layer(index);
-    layer.populate(output, previousNeurons); // Number of input is equal to
+    const outputLayer = new Layer(index);
+    outputLayer.populate(output, previousNeurons); // Number of input is equal to
     // the size of the last hidden
     // layer.
-    this.layers.push(layer);
+    this.layers.push(outputLayer);
   }
 
   /**
@@ -210,19 +211,19 @@ class Network {
     let index = 0;
     let indexWeights = 0;
     this.layers = [];
-    for (let i in save.neurons) {
+    for (let i in network.neurons) {
       // Create and populate layers.
       const layer = new Layer(index);
-      layer.populate(save.neurons[i], previousNeurons);
+      layer.populate(network.neurons[i], previousNeurons);
       for (let j in layer.neurons) {
         for (let k in layer.neurons[j].weights) {
           // Apply neurons weights to each Neuron.
-          layer.neurons[j].weights[k] = save.weights[indexWeights];
+          layer.neurons[j].weights[k] = network.weights[indexWeights];
 
           indexWeights++; // Increment index of flat array.
         }
       }
-      previousNeurons = save.neurons[i];
+      previousNeurons = network.neurons[i];
       index++;
       this.layers.push(layer);
     }
@@ -278,8 +279,9 @@ class Genome {
 }
 
 class Generation {
-  constructor() {
+  constructor(context) {
     this.genomes = [];
+    this.context = context;
   }
 
   /**
@@ -293,7 +295,7 @@ class Generation {
     // The gnomes should remain sorted.
     for (let i = 0; i < this.genomes.length; i++) {
       // Sort in descending order.
-      if (this.options.scoreSort < 0) {
+      if (this.context.scoreSort < 0) {
         if (genome.score > this.genomes[i].score) {
           break;
         }
@@ -333,11 +335,11 @@ class Generation {
 
       // Perform mutation on some weights.
       for (let i in data.network.weights) {
-        if (Math.random() <= this.options.mutationRate) {
+        if (Math.random() <= this.context.mutationRate) {
           data.network.weights[i] += Math.random() *
-            this.options.mutationRange *
+            this.context.mutationRange *
             2 -
-            this.options.mutationRange;
+            this.context.mutationRange;
         }
       }
       datas.push(data);
@@ -354,21 +356,21 @@ class Generation {
   generateNextGeneration = () => {
     const nexts = [];
 
-    for (let i = 0; i < Math.round(this.options.elitism *
-      this.options.population); i++) {
-      if (nexts.length < this.options.population) {
+    for (let i = 0; i < Math.round(this.context.elitism *
+      this.context.population); i++) {
+      if (nexts.length < this.context.population) {
         // Push a deep copy of ith Genome's Nethwork.
         nexts.push(JSON.parse(JSON.stringify(this.genomes[i].network)));
       }
     }
 
-    for (let i = 0; i < Math.round(this.options.randomBehaviour *
-      this.options.population); i++) {
+    for (let i = 0; i < Math.round(this.context.randomBehaviour *
+      this.context.population); i++) {
       let n = JSON.parse(JSON.stringify(this.genomes[0].network));
       for (var k in n.weights) {
-        n.weights[k] = this.options.randomClamped();
+        n.weights[k] = Math.random() * 2 - 1;;
       }
-      if (nexts.length < this.options.population) {
+      if (nexts.length < this.context.population) {
         nexts.push(n);
       }
     }
@@ -378,10 +380,10 @@ class Generation {
       for (let i = 0; i < max; i++) {
         // Create the children and push them to the nexts array.
         const childs = this.breed(this.genomes[i], this.genomes[max],
-          (this.options.nbChild > 0 ? this.options.nbChild : 1));
+          (this.context.nbChild > 0 ? this.context.nbChild : 1));
         for (let c in childs) {
           nexts.push(childs[c].network);
-          if (nexts.length >= this.options.population) {
+          if (nexts.length >= this.context.population) {
             // Return once number of children is equal to the
             // population by generatino value.
             return nexts;
@@ -397,9 +399,10 @@ class Generation {
 }
 
 class Generations {
-  constructor() {
+  constructor(context) {
+    this.context = context
     this.generations = [];
-    this.currentGeneration = new Generation();
+    this.currentGeneration = new Generation(context);
   }
 
   /**
@@ -410,20 +413,18 @@ class Generations {
 	 * @param {output} Output layer.
 	 * @return First Generation.
 	 */
-  firstGeneration = (input, hiddens, output) => {
-    // FIXME input, hiddens, output unused.
-
+  firstGeneration = () => {
     const out = [];
-    for (let i = 0; i < this.options.population; i++) {
+    for (let i = 0; i < this.context.population; i++) {
       // Generate the Network and save it.
       const nn = new Network();
-      nn.perceptronGeneration(this.options.network[0],
-        this.options.network[1],
-        this.options.network[2]);
+      nn.perceptronGeneration(this.context.network[0],
+        this.context.network[1],
+        this.context.network[2]);
       out.push(nn.getSave());
     }
 
-    this.generations.push(new Generation());
+    this.generations.push(new Generation(this.context));
     return out;
   }
 
@@ -440,7 +441,7 @@ class Generations {
 
     const gen = this.generations[this.generations.length - 1]
       .generateNextGeneration();
-    this.generations.push(new Generation());
+    this.generations.push(new Generation(this.context));
     return gen;
   }
 

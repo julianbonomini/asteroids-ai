@@ -32,6 +32,7 @@ class Player {
 
   endGeneration = () => {
     this.neat.sort();
+    // drawGraph(neat.population[0].graph($('.best').width(), $('.best').height()), '.best', false);
     this.onEndGeneration({
       generation: this.neat.generation,
       max: this.neat.getFittest().score,
